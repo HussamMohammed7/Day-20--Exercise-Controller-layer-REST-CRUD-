@@ -2,8 +2,6 @@ package com.example.exerciseetasktracker.Controller;
 
 
 import com.example.exerciseetasktracker.Api.ApiResponse;
-import com.example.exerciseetasktracker.Api.TrackerRespons;
-import com.example.exerciseetasktracker.Model.StatusUpdateRequest;
 import com.example.exerciseetasktracker.Model.TaskTracker;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,29 +49,6 @@ public class ControllerTaskTracker {
         return new ApiResponse("TaskTracker added with ID: " + randomID, "202");
     }
 
-    @PutMapping("/update/{index}")
-    public ApiResponse updateTaskTracker(@PathVariable int index ,@RequestBody TaskTracker taskTracker) {
-        if (index < 0 || index >= taskTrackers.size()) {
-            return new ApiResponse("Index out of bounds", "400");
-        }
-        TaskTracker existingTaskTracker = taskTrackers.get(index);
-
-        if (taskTracker.getTitle() != null) {
-            existingTaskTracker.setTitle(taskTracker.getTitle());
-        }
-        if (taskTracker.getDescription() != null) {
-            existingTaskTracker.setDescription(taskTracker.getDescription());
-        }
-        if (taskTracker.getStatus() != null) {
-            if (taskTracker.getStatus().equalsIgnoreCase("done") || taskTracker.getStatus().equalsIgnoreCase("not done")) {
-                existingTaskTracker.setStatus(taskTracker.getStatus());
-            }else {
-                return new ApiResponse("Task tracker status only except done or not done", "404");
-            }
-        }
-        taskTrackers.set(index, existingTaskTracker);
-        return new ApiResponse("task tracker updated", "202");
-    }
 
     @PutMapping("/update-id/{id}")
     public ApiResponse updateIdTaskTracker(@PathVariable String id, @RequestBody TaskTracker taskTracker) {
@@ -115,14 +90,6 @@ public class ControllerTaskTracker {
 
 
 
-    @DeleteMapping ("/delete/{index}")
-    public ApiResponse deleteTaskTracker(@PathVariable int index) {
-        if (index < 0 || index >= taskTrackers.size()) {
-            return new ApiResponse("Index out of bounds", "400");
-        }
-        taskTrackers.remove(index);
-        return new ApiResponse("task tracker","202");
-    }
 
     @DeleteMapping ("/delete-id/{id}")
     public ApiResponse deleteTaskTrackerID(@PathVariable String id) {
@@ -139,25 +106,10 @@ public class ControllerTaskTracker {
 
 
 
-    @PutMapping("/update-status/{index}")
-    public ApiResponse updateStatusTaskTracker(@PathVariable int index , @RequestBody StatusUpdateRequest status) {
-        if (index < 0 || index >= taskTrackers.size()) {
-            return new ApiResponse("Index out of bounds", "400");
-        }
-        String statusRaw = status.getStatus().trim();
+    @PutMapping("/update-id-status/{id}/{status}")
+    public ApiResponse updateStatusIdTaskTracker(@PathVariable String id , @PathVariable String status) {
 
-
-        if (statusRaw.equalsIgnoreCase("done") || statusRaw.equalsIgnoreCase("not done")) {
-            taskTrackers.get(index).setStatus(statusRaw);
-            return new ApiResponse("Task tracker status updated", "202");
-        }
-
-        return new ApiResponse("task tracker not updated, check your status typing", "404");
-    }
-    @PutMapping("/update-id-status/{id}")
-    public ApiResponse updateStatusIdTaskTracker(@PathVariable String id , @RequestBody StatusUpdateRequest status) {
-
-        String statusRaw = status.getStatus().trim();
+        String statusRaw = status;
         int index = -1;
 
         for (int i = 0; i < taskTrackers.size(); i++) {
@@ -182,16 +134,16 @@ public class ControllerTaskTracker {
 
 
     @GetMapping("/search-title/{title}")
-    public TrackerRespons searchTitleTaskTracker(@PathVariable String title ) {
+    public TaskTracker searchTitleTaskTracker(@PathVariable String title ) {
 
        for (TaskTracker taskTracker : taskTrackers) {
            if (taskTracker.getTitle().equals(title)) {
 
-               return new TrackerRespons( new ApiResponse("Task tracker found", "202"), taskTracker );
+             return taskTracker ;
            }
        }
 
-        return new TrackerRespons( new ApiResponse("Task tracker found", "404"), null );
+        return null ;
 
     }
 }

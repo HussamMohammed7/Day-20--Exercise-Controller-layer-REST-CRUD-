@@ -1,8 +1,6 @@
 package com.example.bankmanagement.Controller;
 
 import com.example.bankmanagement.Api.ApiResponse;
-import com.example.bankmanagement.Api.CustomerApiResponse;
-import com.example.bankmanagement.Api.TransferApi;
 import com.example.bankmanagement.Model.Customers;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +26,7 @@ public class ControllerCustomers {
 
 
     @PostMapping("/add")
-    public CustomerApiResponse addCustomer(@RequestBody Customers customer) {
+    public ApiResponse addCustomer(@RequestBody Customers customer) {
         Random randa = new Random();
         String randomID;
         boolean idExists;
@@ -47,31 +45,14 @@ public class ControllerCustomers {
         customer.setID(randomID);
         customers.add(customer);
 
-        return new CustomerApiResponse( new ApiResponse("Customer added successfully", "202"), customer );
+        return new ApiResponse("Customer added successfully", "202");
     }
 
 
-    @PutMapping("/update/{index}")
-    public CustomerApiResponse updateCustomers(@PathVariable int index ,@RequestBody Customers customer) {
-        if (index < 0 || index >= customers.size()) {
-            return new CustomerApiResponse(new ApiResponse("Index out of bounds", "400"),null);
-        }
-        Customers existingCustomer = customers.get(index);
-
-        if (customer.getBalance() != 0) {
-            existingCustomer.setBalance(customer.getBalance());
-        }
-        if (customer.getUsername() != null) {
-            existingCustomer.setUsername(customer.getUsername());
-        }
-
-        customers.set(index, existingCustomer);
-        return new CustomerApiResponse(new ApiResponse("customer updated", "202"),existingCustomer);
-    }
 
 
     @PutMapping("/update-id/{id}")
-    public CustomerApiResponse updateIdCustomer(@PathVariable String id, @RequestBody Customers customer) {
+    public ApiResponse updateIdCustomer(@PathVariable String id, @RequestBody Customers customer) {
         Customers existingCustomer = null;
         int index = -1;
 
@@ -84,7 +65,7 @@ public class ControllerCustomers {
         }
 
         if (existingCustomer == null) {
-            return new CustomerApiResponse(new ApiResponse("ID not found ", "400"),null);
+            return new ApiResponse("ID not found ", "400");
         }
 
         if (customer.getBalance() != 0) {
@@ -95,41 +76,29 @@ public class ControllerCustomers {
         }
 
         customers.set(index, existingCustomer);
-        return new CustomerApiResponse(new ApiResponse("customer updated", "202"),existingCustomer);
+        return new ApiResponse("customer updated", "202");
     }
 
 
 
 
 
-    @DeleteMapping ("/delete/{index}")
-    public CustomerApiResponse deleteCustomers(@PathVariable int index) {
-
-        if (index < 0 || index >= customers.size()) {
-            return new CustomerApiResponse(new ApiResponse("Index out of bounds", "400"),null);
-        }
-
-
-        Customers deletedCustomer = customers.get(index);
-        customers.remove(index);
-        return new CustomerApiResponse(new ApiResponse("customer updated", "202"),deletedCustomer);
-    }
 
     @DeleteMapping ("/delete-id/{id}")
-    public CustomerApiResponse deleteCustomersID(@PathVariable String id) {
+    public ApiResponse deleteCustomersID(@PathVariable String id) {
 
         for (Customers customer : customers) {
             if (id.equals(customer.getID())) {
                 customers.remove(customer);
-                return new CustomerApiResponse(new ApiResponse("customer deleted", "202"),customer);
+                return  new ApiResponse("customer deleted", "202");
             }
         }
-        return new CustomerApiResponse(new ApiResponse("customer delete by ID not found", "404"),null);
+        return new ApiResponse("customer delete by ID not found", "404");
 
     }
 
     @PutMapping("deposit/{id}/{amount}")
-    public CustomerApiResponse depositMoney(@PathVariable String id ,@PathVariable double amount  ) {
+    public ApiResponse depositMoney(@PathVariable String id ,@PathVariable double amount  ) {
         int index = -1;
 
         for (int i = 0; i < customers.size(); i++) {
@@ -139,21 +108,21 @@ public class ControllerCustomers {
             }
         }
         if (index == -1) {
-            return new CustomerApiResponse(new ApiResponse("customer not found", "404"),null);
+            return new ApiResponse("customer not found", "404");
         }
         Customers customer = customers.get(index);
 
         if (amount <= 0) {
-            return new CustomerApiResponse(new ApiResponse("amount is not possible", "400"),null);
+            return new ApiResponse("amount is not possible", "400");
         }
 
         customers.get(index).setBalance(customer.getBalance()+amount);
-        return new CustomerApiResponse(new ApiResponse("customer deposit successfully", "202"),customer);
+        return new ApiResponse("customer deposit successfully", "202");
 
     }
 
     @PutMapping("withdraw/{id}/{amount}")
-    public CustomerApiResponse withdrawMoney(@PathVariable String id ,@PathVariable double amount  ) {
+    public ApiResponse withdrawMoney(@PathVariable String id ,@PathVariable double amount  ) {
         int index = -1;
 
         for (int i = 0; i < customers.size(); i++) {
@@ -164,26 +133,26 @@ public class ControllerCustomers {
         }
 
         if (index == -1) {
-            return new CustomerApiResponse(new ApiResponse("customer not found", "404"),null);
+            return   new ApiResponse("customer not found", "404");
         }
         Customers customer = customers.get(index);
 
         if (amount <= 0) {
-            return new CustomerApiResponse(new ApiResponse("Amount must be positive number", "400"), customer);
+            return new ApiResponse("Amount must be positive number", "400");
         }
         if (customer.getBalance() < amount) {
-            return new CustomerApiResponse(new ApiResponse("Insufficient balance", "400"), customer);
+            return new ApiResponse("Insufficient balance", "400");
         }
 
 
         customer.setBalance(customer.getBalance() - amount);
-        return new CustomerApiResponse(new ApiResponse("Withdrawal successful", "202"), customer);
+        return new ApiResponse("Withdrawal successful", "202");
 
 
     }
 
     @PutMapping("/transfer/{idSender}/{idReciver}/{amount}")
-    public TransferApi transferCustomers(@PathVariable String idSender, @PathVariable String idReciver,@PathVariable double amount) {
+    public ApiResponse transferCustomers(@PathVariable String idSender, @PathVariable String idReciver,@PathVariable double amount) {
 
         Customers sender = null;
         Customers receiver = null;
@@ -204,13 +173,13 @@ public class ControllerCustomers {
             if (sender.getBalance() >= amount) {
                 sender.setBalance(sender.getBalance() - amount);
                 receiver.setBalance(receiver.getBalance() +amount);
-                return new TransferApi(new ApiResponse("customer transfer successfully", "202"), sender, receiver);
+                return new ApiResponse("customer transfer successfully", "202");
             }
         }else{
-            return new TransferApi(new ApiResponse("Users not found ", "404"), sender, receiver);
+            return  new ApiResponse("Users not found ", "404");
         }
 
-        return new TransferApi(new ApiResponse("Balance not enough", "404"), sender, receiver);
+        return  new ApiResponse("Balance not enough", "404");
     }
 
 
