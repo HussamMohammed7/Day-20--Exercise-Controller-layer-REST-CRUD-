@@ -4,8 +4,6 @@ import com.example.bankmanagement.Api.ApiResponse;
 import com.example.bankmanagement.Api.CustomerApiResponse;
 import com.example.bankmanagement.Api.TransferApi;
 import com.example.bankmanagement.Model.Customers;
-import com.example.bankmanagement.Model.TransactionRequest;
-import com.example.bankmanagement.Model.TransferMoney;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -130,12 +128,12 @@ public class ControllerCustomers {
 
     }
 
-    @PutMapping("deposit")
-    public CustomerApiResponse depositMoney(@RequestBody TransactionRequest trans) {
+    @PutMapping("deposit/{id}/{amount}")
+    public CustomerApiResponse depositMoney(@PathVariable String id ,@PathVariable double amount  ) {
         int index = -1;
 
         for (int i = 0; i < customers.size(); i++) {
-            if (customers.get(i).getID().equals(trans.getID())) {
+            if (customers.get(i).getID().equals(id)) {
                 index = i;
                 break;
             }
@@ -145,21 +143,21 @@ public class ControllerCustomers {
         }
         Customers customer = customers.get(index);
 
-        if (trans.getAmount() <= 0) {
+        if (amount <= 0) {
             return new CustomerApiResponse(new ApiResponse("amount is not possible", "400"),null);
         }
 
-        customers.get(index).setBalance(customer.getBalance()+trans.getAmount());
+        customers.get(index).setBalance(customer.getBalance()+amount);
         return new CustomerApiResponse(new ApiResponse("customer deposit successfully", "202"),customer);
 
     }
 
-    @PutMapping("withdraw")
-    public CustomerApiResponse withdrawMoney(@RequestBody TransactionRequest trans) {
+    @PutMapping("withdraw/{id}/{amount}")
+    public CustomerApiResponse withdrawMoney(@PathVariable String id ,@PathVariable double amount  ) {
         int index = -1;
 
         for (int i = 0; i < customers.size(); i++) {
-            if (customers.get(i).getID().equals(trans.getID())) {
+            if (customers.get(i).getID().equals(id)) {
                 index = i;
                 break;
             }
@@ -170,43 +168,42 @@ public class ControllerCustomers {
         }
         Customers customer = customers.get(index);
 
-        if (trans.getAmount() <= 0) {
+        if (amount <= 0) {
             return new CustomerApiResponse(new ApiResponse("Amount must be positive number", "400"), customer);
         }
-        if (customer.getBalance() < trans.getAmount()) {
+        if (customer.getBalance() < amount) {
             return new CustomerApiResponse(new ApiResponse("Insufficient balance", "400"), customer);
         }
 
 
-        customer.setBalance(customer.getBalance() - trans.getAmount());
+        customer.setBalance(customer.getBalance() - amount);
         return new CustomerApiResponse(new ApiResponse("Withdrawal successful", "202"), customer);
-
 
 
     }
 
-    @PutMapping("/transfer")
-    public TransferApi transferCustomers(@RequestBody TransferMoney transferMoney) {
+    @PutMapping("/transfer/{idSender}/{idReciver}/{amount}")
+    public TransferApi transferCustomers(@PathVariable String idSender, @PathVariable String idReciver,@PathVariable double amount) {
 
         Customers sender = null;
         Customers receiver = null;
         for (Customers i : customers) {
-            if (transferMoney.getIdSender().equals(i.getID())) {
+            if (idSender.equals(i.getID())) {
                 sender = i;
                 break;
             }
         }
         for (Customers i : customers) {
-            if (transferMoney.getIdReceiver().equals(i.getID())) {
+            if (idReciver.equals(i.getID())) {
                 receiver = i;
                 break;
             }
         }
 
         if (sender != null && receiver != null) {
-            if (sender.getBalance() >= transferMoney.getMoneyTrans()) {
-                sender.setBalance(sender.getBalance() - transferMoney.getMoneyTrans());
-                receiver.setBalance(receiver.getBalance() +transferMoney.getMoneyTrans());
+            if (sender.getBalance() >= amount) {
+                sender.setBalance(sender.getBalance() - amount);
+                receiver.setBalance(receiver.getBalance() +amount);
                 return new TransferApi(new ApiResponse("customer transfer successfully", "202"), sender, receiver);
             }
         }else{
